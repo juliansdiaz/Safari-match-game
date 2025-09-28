@@ -50,6 +50,7 @@ public class Board : MonoBehaviour
             {
                 var o = Instantiate(tileObject, new Vector3(x, y, -5f), Quaternion.identity); //Create new tile instance 
                 o.transform.parent = transform; //Set tile instance as child of the board
+                o.GetComponent<Tile>()?.Setup(x, y, this); //Set tile coordinates in the game board 
             }
         }
     }

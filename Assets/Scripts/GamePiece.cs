@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class GamePiece : MonoBehaviour
 {
@@ -32,5 +33,14 @@ public class GamePiece : MonoBehaviour
         xPosition = xPos_;
         yPosition = yPos_;
         gBoard = gameBoard_;
+    }
+
+    public void Move(int xDestination, int yDestination)
+    {
+        transform.DOMove(new Vector3(xDestination, yDestination, -5f), 0.25f).SetEase(Ease.InOutCubic).onComplete = () =>
+        {
+            xPosition = xDestination;
+            yPosition = yDestination;
+        };
     }
 }

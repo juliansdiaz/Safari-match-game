@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Board : MonoBehaviour
@@ -11,18 +12,34 @@ public class Board : MonoBehaviour
     public float cameraSizeOffset;
     public float cameraVerticalOffset;
     public GameObject tileObject;
+    public GameObject[] availablePieces;
 
-    // Start is called before the first frame update
     void Start()
     {
         SetupBoard();
         SetCameraPosition();
+        SetupPieces();
     }
 
-    // Update is called once per frame
     void Update()
     {
 
+    }
+
+    private void SetupPieces()
+    {
+        //Draw board's rows
+        for (int x = 0; x < width; x++)
+        {
+            //Draw board's columns
+            for (int y = 0; y < height; y++)
+            {
+                var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Select random game piece to instantiate
+                var o = Instantiate(selectedPiece, new Vector3(x, y, -5f), Quaternion.identity); //Create new game piece instance 
+                o.transform.parent = transform; //Set game piece instance as child of the board
+                o.GetComponent<GamePiece>()?.SetGamePieces(x, y, this); //Set game piece coordinates in the game board 
+            }
+        }
     }
 
     private void SetCameraPosition()

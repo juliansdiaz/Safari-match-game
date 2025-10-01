@@ -103,11 +103,24 @@ public class Board : MonoBehaviour
 
     public void TileReleased(Tile clickedTile_)
     {
-        if (startTile != null && endTile != null)
+        if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
         {
             SwapTiles();
         }
         startTile = null;
         endTile = null;
+    }
+
+    public bool IsCloseTo(Tile start_, Tile end_)
+    {
+        if (Math.Abs((start_.xPos - end_.xPos)) == 1 && start_.yPos == end_.yPos)
+        {
+            return true;
+        }
+        if (Math.Abs((start_.yPos - end_.yPos)) == 1 && start_.xPos == end_.xPos)
+        {
+            return true;
+        }
+        return false;
     }
 }

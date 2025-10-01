@@ -13,17 +13,19 @@ public class Board : MonoBehaviour
     public float cameraVerticalOffset;
     public GameObject tileObject;
     public GameObject[] availablePieces;
+    Tile[,] boardTiles;
+    GamePiece[,] boardPieces;
+    Tile startTile;
+    Tile endTile;
 
     void Start()
     {
+        boardTiles = new Tile[width, height];
+        boardPieces = new GamePiece[width, height];
+
         SetupBoard();
         SetCameraPosition();
         SetupPieces();
-    }
-
-    void Update()
-    {
-
     }
 
     private void SetupPieces()
@@ -37,7 +39,8 @@ public class Board : MonoBehaviour
                 var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Select random game piece to instantiate
                 var o = Instantiate(selectedPiece, new Vector3(x, y, -5f), Quaternion.identity); //Create new game piece instance 
                 o.transform.parent = transform; //Set game piece instance as child of the board
-                o.GetComponent<GamePiece>()?.SetGamePieces(x, y, this); //Set game piece coordinates in the game board 
+                boardPieces[x, y] = o.GetComponent<GamePiece>(); //save GamePiece reference into boardPieces array
+                boardPieces[x, y]?.SetGamePieces(x, y, this); //Set game piece coordinates in the game board 
             }
         }
     }
@@ -48,7 +51,7 @@ public class Board : MonoBehaviour
         float newPosX = (float)width / 2f;
         float newPosY = (float)height / 2f;
 
-        Camera.main.transform.position = new Vector3 (newPosX - 0.5f, (newPosY - 0.5f + cameraVerticalOffset), -10);
+        Camera.main.transform.position = new Vector3(newPosX - 0.5f, (newPosY - 0.5f + cameraVerticalOffset), -10);
 
         //Set camera margins 
         float hMargin = width + 1;
@@ -58,7 +61,7 @@ public class Board : MonoBehaviour
     }
 
     private void SetupBoard()
-    {   
+    {
         //Draw board's rows
         for (int x = 0; x < width; x++)
         {
@@ -67,8 +70,44 @@ public class Board : MonoBehaviour
             {
                 var o = Instantiate(tileObject, new Vector3(x, y, -5f), Quaternion.identity); //Create new tile instance 
                 o.transform.parent = transform; //Set tile instance as child of the board
-                o.GetComponent<Tile>()?.Setup(x, y, this); //Set tile coordinates in the game board 
+                boardTiles[x, y] = o.GetComponent<Tile>(); //Save Tile reference in boardTiles array
+                boardTiles[x, y]?.Setup(x, y, this); //Set tile coordinates in the game board 
             }
         }
+    }
+
+    private void SwapTiles()
+    {
+        //Create piece references according to their position in board
+        var startPiece = boardPieces[startTile.xPos, startTile.yPos];
+        var endPiece = boardPieces[endTile.xPos, endTile.yPos];
+
+        //Swap the pieces by changing their position values
+        startPiece.Move(endTile.xPos, endTile.yPos);
+        endPiece.Move(startTile.xPos, startTile.yPos);
+
+        //Update piece coordinates in the grid
+        boardPieces[startTile.xPos, startTile.yPos] = endPiece;
+        boardPieces[endTile.xPos, endTile.yPos] = startPiece;
+    }
+
+    public void TileClicked(Tile clickedTile_)
+    {
+        startTile = clickedTile_;
+    }
+
+    public void TileMoved(Tile clickedTile_)
+    {
+        endTile = clickedTile_;
+    }
+
+    public void TileReleased(Tile clickedTile_)
+    {
+        if (startTile != null && endTile != null)
+        {
+            SwapTiles();
+        }
+        startTile = null;
+        endTile = null;
     }
 }

@@ -16,4 +16,19 @@ public class Tile : MonoBehaviour
         yPos = yPos_;
         gameBoard = gameBoard_;
     }
+
+    public void OnMouseDown()
+    {
+        gameBoard.TileClicked(this);
+    }
+
+    public void OnMouseEnter()
+    {
+        gameBoard.TileMoved(this);
+    }
+
+    public void OnMouseUp()
+    {
+        gameBoard.TileReleased(this);
+    }
 }

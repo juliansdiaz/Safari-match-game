@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -122,5 +124,67 @@ public class Board : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    public List<GamePiece> GetMatchByDirection(int xPosition, int yPosition, Vector2 direction, int minPieces = 3)
+    {
+        List<GamePiece> matches = new List<GamePiece>();
+        GamePiece initialPiece = boardPieces[xPosition, yPosition];
+        matches.Add(initialPiece);
+
+        int nextX;
+        int nextY;
+        int maxVal = width > height ? width : height;
+
+        for (int i = 1; i < maxVal; i++)
+        {
+            nextX = xPosition + ((int)direction.x * i);
+            nextY = yPosition + ((int)direction.y * i);
+            if (nextX >= 0 && nextX < width && nextY >= 0 && nextY < height)
+            {
+                var nextPiece = boardPieces[nextX, nextY];
+                if (nextPiece != null && nextPiece.pieceType == initialPiece.pieceType)
+                {
+                    matches.Add(nextPiece);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        if (matches.Count >= minPieces)
+        {
+            return matches;
+        }
+        return null;
+    }
+
+    public List<GamePiece> GetMatchByPiece(int xPosition_, int yPosition_, int minPieces_ = 3)
+    {
+        var upMatch = GetMatchByDirection(xPosition_, yPosition_, new Vector2(0, 1), 2);
+        var downMatch = GetMatchByDirection(xPosition_, yPosition_, new Vector2(0, -1), 2);
+        var rightMatch = GetMatchByDirection(xPosition_, yPosition_, new Vector2(1, 0), 2);
+        var leftMatch = GetMatchByDirection(xPosition_, yPosition_, new Vector2(-1, 0), 2);
+
+        if (upMatch == null) upMatch = new List<GamePiece>();
+        if (downMatch == null) downMatch = new List<GamePiece>();
+        if (rightMatch == null) rightMatch = new List<GamePiece>();
+        if (leftMatch == null) leftMatch = new List<GamePiece>();
+
+        var verticalMatch = upMatch.Union(downMatch).ToList();
+        var horizontalMatch = rightMatch.Union(leftMatch).ToList();
+
+        var foundMatches = new List<GamePiece>();
+        if (verticalMatch.Count >= minPieces_)
+        {
+            foundMatches = foundMatches.Union(verticalMatch).ToList();
+        }
+        if (horizontalMatch.Count >= minPieces_)
+        {
+            foundMatches = foundMatches.Union(horizontalMatch).ToList();
+        }
+
+        return foundMatches;
     }
 }

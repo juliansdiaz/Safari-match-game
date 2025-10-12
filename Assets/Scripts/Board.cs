@@ -19,6 +19,7 @@ public class Board : MonoBehaviour
     GamePiece[,] boardPieces;
     Tile startTile;
     Tile endTile;
+    bool arePiecesSwapping = false;
 
     void Start()
     {
@@ -32,19 +33,47 @@ public class Board : MonoBehaviour
 
     private void SetupPieces()
     {
+        int maxIterations = 50;
+        int currentIteration = 0;
+
         //Draw board's rows
         for (int x = 0; x < width; x++)
         {
             //Draw board's columns
             for (int y = 0; y < height; y++)
             {
-                var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Select random game piece to instantiate
-                var o = Instantiate(selectedPiece, new Vector3(x, y, -5f), Quaternion.identity); //Create new game piece instance 
-                o.transform.parent = transform; //Set game piece instance as child of the board
-                boardPieces[x, y] = o.GetComponent<GamePiece>(); //save GamePiece reference into boardPieces array
-                boardPieces[x, y]?.SetGamePieces(x, y, this); //Set game piece coordinates in the game board 
+                currentIteration = 0;
+                var newPiece = CreateGamePiece(x, y);
+                while (HasPreviousMatches(x, y))
+                {
+                    ClearPieceAt(x, y);
+                    newPiece = CreateGamePiece(x, y);
+                    currentIteration++;
+                    if (currentIteration > maxIterations)
+                    {
+                        break;
+                    }
+                }
             }
         }
+    }
+
+    private void ClearPieceAt(int x, int y)
+    {
+        var pieceToClear = boardPieces[x, y];
+        Destroy(pieceToClear.gameObject);
+        boardPieces[x, y] = null;
+    }
+
+    private GamePiece CreateGamePiece(int x, int y)
+    {
+        var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Select random game piece to instantiate
+        var o = Instantiate(selectedPiece, new Vector3(x, y, -5f), Quaternion.identity); //Create new game piece instance 
+        o.transform.parent = transform; //Set game piece instance as child of the board
+        boardPieces[x, y] = o.GetComponent<GamePiece>(); //save GamePiece reference into boardPieces array
+        boardPieces[x, y]?.SetGamePieces(x, y, this); //Set game piece coordinates in the game board
+
+        return boardPieces[x, y];
     }
 
     private void SetCameraPosition()
@@ -78,7 +107,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    private void SwapTiles()
+    private IEnumerator SwapTiles()
     {
         //Create piece references according to their position in board
         var startPiece = boardPieces[startTile.xPos, startTile.yPos];
@@ -91,6 +120,38 @@ public class Board : MonoBehaviour
         //Update piece coordinates in the grid
         boardPieces[startTile.xPos, startTile.yPos] = endPiece;
         boardPieces[endTile.xPos, endTile.yPos] = startPiece;
+
+        yield return new WaitForSeconds(0.6f);
+
+        bool matchFound = false;
+        var startMatches = GetMatchByPiece(startTile.xPos, startTile.yPos, 3);
+        var endMatches = GetMatchByPiece(endTile.xPos, endTile.yPos, 3);
+
+        startMatches.ForEach(piece =>
+        {
+            matchFound = true;
+            ClearPieceAt(piece.xPosition, piece.yPosition);
+        });
+
+        endMatches.ForEach(piece =>
+        {
+            matchFound = true;
+            ClearPieceAt(piece.xPosition, piece.yPosition);
+        });
+
+        if (!matchFound)
+        {
+            startPiece.Move(startTile.xPos, startTile.yPos);
+            endPiece.Move(endTile.xPos, endTile.yPos);
+            boardPieces[startTile.xPos, startTile.yPos] = startPiece;
+            boardPieces[endTile.xPos, endTile.yPos] = endPiece;
+        }
+
+        startTile = null;
+        endTile = null;
+        arePiecesSwapping = false;
+
+        yield return null;
     }
 
     public void TileClicked(Tile clickedTile_)
@@ -107,10 +168,8 @@ public class Board : MonoBehaviour
     {
         if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
         {
-            SwapTiles();
+            StartCoroutine(SwapTiles());
         }
-        startTile = null;
-        endTile = null;
     }
 
     public bool IsCloseTo(Tile start_, Tile end_)
@@ -124,6 +183,17 @@ public class Board : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    bool HasPreviousMatches(int posX, int posY)
+    {
+        var downMatch = GetMatchByDirection(posX, posY, new Vector2(0, -1), 2);
+        var leftMatch = GetMatchByDirection(posX, posY, new Vector2(-1, 0), 2);
+
+        if (downMatch == null) downMatch = new List<GamePiece>();
+        if (leftMatch == null) leftMatch = new List<GamePiece>();
+
+        return downMatch.Count > 0 || leftMatch.Count > 0;
     }
 
     public List<GamePiece> GetMatchByDirection(int xPosition, int yPosition, Vector2 direction, int minPieces = 3)
@@ -173,7 +243,7 @@ public class Board : MonoBehaviour
         if (leftMatch == null) leftMatch = new List<GamePiece>();
 
         var verticalMatch = upMatch.Union(downMatch).ToList();
-        var horizontalMatch = rightMatch.Union(leftMatch).ToList();
+        var horizontalMatch = leftMatch.Union(rightMatch).ToList();
 
         var foundMatches = new List<GamePiece>();
         if (verticalMatch.Count >= minPieces_)

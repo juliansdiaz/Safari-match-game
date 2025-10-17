@@ -123,28 +123,20 @@ public class Board : MonoBehaviour
 
         yield return new WaitForSeconds(0.6f);
 
-        bool matchFound = false;
         var startMatches = GetMatchByPiece(startTile.xPos, startTile.yPos, 3);
         var endMatches = GetMatchByPiece(endTile.xPos, endTile.yPos, 3);
+        var allMatches = startMatches.Union(endMatches).ToList();
 
-        startMatches.ForEach(piece =>
-        {
-            matchFound = true;
-            ClearPieceAt(piece.xPosition, piece.yPosition);
-        });
-
-        endMatches.ForEach(piece =>
-        {
-            matchFound = true;
-            ClearPieceAt(piece.xPosition, piece.yPosition);
-        });
-
-        if (!matchFound)
+        if (allMatches.Count == 0)
         {
             startPiece.Move(startTile.xPos, startTile.yPos);
             endPiece.Move(endTile.xPos, endTile.yPos);
             boardPieces[startTile.xPos, startTile.yPos] = startPiece;
             boardPieces[endTile.xPos, endTile.yPos] = endPiece;
+        }
+        else
+        {
+            ClearPieces(allMatches);
         }
 
         startTile = null;
@@ -152,6 +144,60 @@ public class Board : MonoBehaviour
         arePiecesSwapping = false;
 
         yield return null;
+    }
+
+    private void ClearPieces(List<GamePiece> piecesToClear)
+    {
+        piecesToClear.ForEach(piece =>
+        {
+            ClearPieceAt(piece.xPosition, piece.yPosition);
+        });
+
+        List<int> columns = GetColumns(piecesToClear);
+        List<GamePiece> collapsedPieces = CollapseColumns(columns, 0.3f);
+    }
+
+    private List<int> GetColumns(List<GamePiece> piecesToClear)
+    {
+        var result = new List<int>();
+        piecesToClear.ForEach(piece =>
+        {
+            if (!result.Contains(piece.xPosition))
+            {
+                result.Add(piece.xPosition);
+            }
+        });
+        return result;
+    }
+
+    private List<GamePiece> CollapseColumns(List<int> columns, float timeToCollapse)
+    {
+        List<GamePiece> movingPieces = new List<GamePiece>();
+        for (int i = 0; i < columns.Count; i++)
+        {
+            var column = columns[i];
+            for (int y = 0; y < height; y++)
+            {
+                if (boardPieces[column, y] == null)
+                {
+                    for (int yplus = y + 1; yplus < height; yplus++)
+                    {
+                        if (boardPieces[column, yplus] != null)
+                        {
+                            boardPieces[column, yplus].Move(column, y);
+                            boardPieces[column, y] = boardPieces[column, yplus];
+                            if (!movingPieces.Contains(boardPieces[column, y]))
+                            {
+                                movingPieces.Add(boardPieces[column, y]);
+                            }
+                            boardPieces[column, yplus] = null;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return movingPieces;
     }
 
     public void TileClicked(Tile clickedTile_)

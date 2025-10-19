@@ -9,7 +9,7 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     //Variables
-    public float timeBetweenPieces;
+    public float timeBetweenPieces = 0.05f;
     public int width;
     public int height;
     public float cameraSizeOffset;
@@ -29,10 +29,10 @@ public class Board : MonoBehaviour
 
         SetupBoard();
         SetCameraPosition();
-        SetupPieces();
+        StartCoroutine(SetupPieces());
     }
 
-    private void SetupPieces()
+    private IEnumerator SetupPieces()
     {
         int maxIterations = 50;
         int currentIteration = 0;
@@ -43,37 +43,42 @@ public class Board : MonoBehaviour
             //Draw board's columns
             for (int y = 0; y < height; y++)
             {
-                currentIteration = 0;
-                var newPiece = CreateGamePiece(x, y);
-                while (HasPreviousMatches(x, y))
+                yield return new WaitForSeconds(timeBetweenPieces);
+                if (boardPieces[x, y] == null)
                 {
-                    ClearPieceAt(x, y);
-                    newPiece = CreateGamePiece(x, y);
-                    currentIteration++;
-                    if (currentIteration > maxIterations)
+                    currentIteration = 0;
+                    var newPiece = CreateGamePiece(x, y);
+                    while (HasPreviousMatches(x, y))
                     {
-                        break;
+                        ClearPieceAt(x, y);
+                        newPiece = CreateGamePiece(x, y);
+                        currentIteration++;
+                        if (currentIteration > maxIterations)
+                        {
+                            break;
+                        }
                     }
                 }
             }
         }
+        yield return null;
     }
 
     private void ClearPieceAt(int x, int y)
     {
         var pieceToClear = boardPieces[x, y];
-        Destroy(pieceToClear.gameObject);
+        pieceToClear.RemovePiece(true);
         boardPieces[x, y] = null;
     }
 
     private GamePiece CreateGamePiece(int x, int y)
     {
         var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Select random game piece to instantiate
-        var o = Instantiate(selectedPiece, new Vector3(x, y, -5f), Quaternion.identity); //Create new game piece instance 
+        var o = Instantiate(selectedPiece, new Vector3(x, y + 1, -5f), Quaternion.identity); //Create new game piece instance 
         o.transform.parent = transform; //Set game piece instance as child of the board
         boardPieces[x, y] = o.GetComponent<GamePiece>(); //save GamePiece reference into boardPieces array
         boardPieces[x, y]?.SetGamePieces(x, y, this); //Set game piece coordinates in the game board
-
+        boardPieces[x, y].Move(x, y);
         return boardPieces[x, y];
     }
 
@@ -110,6 +115,8 @@ public class Board : MonoBehaviour
 
     private IEnumerator SwapTiles()
     {
+        arePiecesSwapping = true;
+
         //Create piece references according to their position in board
         var startPiece = boardPieces[startTile.xPos, startTile.yPos];
         var endPiece = boardPieces[endTile.xPos, endTile.yPos];
@@ -177,11 +184,18 @@ public class Board : MonoBehaviour
                 ClearPieces(matches);
             }
         });
-        if(newMatches.Count > 0)
+        if (newMatches.Count > 0)
         {
             var newCollapsedPieces = CollapseColumns(GetColumns(newMatches), 0.3f);
             FindMatchesRecursively(newCollapsedPieces);
         }
+        else
+        {
+            yield return new WaitForSeconds(0.1f);
+            StartCoroutine(SetupPieces());
+            arePiecesSwapping = false;
+        }
+        yield return null;
     }
 
     private List<int> GetColumns(List<GamePiece> piecesToClear)
@@ -229,20 +243,30 @@ public class Board : MonoBehaviour
 
     public void TileClicked(Tile clickedTile_)
     {
-        startTile = clickedTile_;
+        if (!arePiecesSwapping)
+        {
+            startTile = clickedTile_;
+        }
     }
 
     public void TileMoved(Tile clickedTile_)
     {
-        endTile = clickedTile_;
+        if (!arePiecesSwapping)
+        {
+            endTile = clickedTile_;
+        }
     }
 
     public void TileReleased(Tile clickedTile_)
     {
-        if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
+        if (!arePiecesSwapping)
         {
-            StartCoroutine(SwapTiles());
+            if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
+            {
+                StartCoroutine(SwapTiles());
+            }
         }
+
     }
 
     public bool IsCloseTo(Tile start_, Tile end_)

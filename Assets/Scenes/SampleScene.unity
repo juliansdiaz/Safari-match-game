@@ -370,16 +370,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc880e191cff4bf48ac187b47c4ed564, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeBetweenPieces: 0.01
   width: 6
   height: 10
   cameraSizeOffset: 0
   cameraVerticalOffset: 0
   tileObject: {fileID: 5723090319661382341, guid: 42d6afa867b99e74a8fc8b77fcdd8762, type: 3}
   availablePieces:
-  - {fileID: 6875913391357568765, guid: be6ec4942c32d244891d3225fe99da51, type: 3}
-  - {fileID: 4484182660874657520, guid: a7f10ac88ff2bda41b3735c93b71cfa8, type: 3}
   - {fileID: 7598882775972139902, guid: 242f7ac5459f4cb40a3ab39936b356e4, type: 3}
-  - {fileID: 5395382627670391660, guid: d5b630070f2f25b44bcd7428409e9f49, type: 3}
   - {fileID: 2457417406137123675, guid: df86fbe5055896d45b0f5dcb99ab9a7c, type: 3}
   - {fileID: 626945210739637831, guid: 20909d7ea31176e45a8f3f29450bcaf4, type: 3}
   - {fileID: 6494033320311185780, guid: 27b312b9da728c84292b2fc48283bbdf, type: 3}

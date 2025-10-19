@@ -9,6 +9,7 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     //Variables
+    public float timeBetweenPieces;
     public int width;
     public int height;
     public float cameraSizeOffset;
@@ -155,6 +156,32 @@ public class Board : MonoBehaviour
 
         List<int> columns = GetColumns(piecesToClear);
         List<GamePiece> collapsedPieces = CollapseColumns(columns, 0.3f);
+        FindMatchesRecursively(collapsedPieces);
+    }
+
+    private void FindMatchesRecursively(List<GamePiece> collapsedPieces)
+    {
+        StartCoroutine(FindComboMatches(collapsedPieces));
+    }
+
+    IEnumerator FindComboMatches(List<GamePiece> collapsedPieces)
+    {
+        yield return new WaitForSeconds(1.0f);
+        List<GamePiece> newMatches = new List<GamePiece>();
+        collapsedPieces.ForEach(piece =>
+        {
+            var matches = GetMatchByPiece(piece.xPosition, piece.yPosition, 3);
+            if (matches != null)
+            {
+                newMatches = newMatches.Union(matches).ToList();
+                ClearPieces(matches);
+            }
+        });
+        if(newMatches.Count > 0)
+        {
+            var newCollapsedPieces = CollapseColumns(GetColumns(newMatches), 0.3f);
+            FindMatchesRecursively(newCollapsedPieces);
+        }
     }
 
     private List<int> GetColumns(List<GamePiece> piecesToClear)

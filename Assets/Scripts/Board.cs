@@ -246,7 +246,7 @@ public class Board : MonoBehaviour
 
     public void TileClicked(Tile clickedTile_)
     {
-        if (!arePiecesSwapping)
+        if (!arePiecesSwapping && GameManager.Instance.gameState == GameManager.GameState.InGame)
         {
             startTile = clickedTile_;
         }
@@ -254,7 +254,7 @@ public class Board : MonoBehaviour
 
     public void TileMoved(Tile clickedTile_)
     {
-        if (!arePiecesSwapping)
+        if (!arePiecesSwapping && GameManager.Instance.gameState == GameManager.GameState.InGame)
         {
             endTile = clickedTile_;
         }
@@ -262,7 +262,7 @@ public class Board : MonoBehaviour
 
     public void TileReleased(Tile clickedTile_)
     {
-        if (!arePiecesSwapping)
+        if (!arePiecesSwapping && GameManager.Instance.gameState == GameManager.GameState.InGame)
         {
             if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
             {

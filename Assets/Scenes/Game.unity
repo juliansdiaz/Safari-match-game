@@ -464,7 +464,10 @@ MonoBehaviour:
   onPointsUpdated:
     m_PersistentCalls:
       m_Calls: []
-  gameState: 0
+  onGameStateUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  gameState: 1
 --- !u!1 &430912099
 GameObject:
   m_ObjectHideFlags: 0
@@ -1607,6 +1610,7 @@ GameObject:
   - component: {fileID: 1780740357}
   - component: {fileID: 1780740359}
   - component: {fileID: 1780740358}
+  - component: {fileID: 1780740360}
   m_Layer: 5
   m_Name: GameOverUI
   m_TagString: Untagged
@@ -1672,6 +1676,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1780740356}
   m_CullTransparentMesh: 1
+--- !u!114 &1780740360
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780740356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7ea9e28d01997c48b0f53d202f6df1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  containerRect: {fileID: 50995010}
+  containerCanvas: {fileID: 50995014}
+  background: {fileID: 1780740358}
+  visibleState: 2
+  transitionTime: 1.2
 --- !u!1 &1907588764
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,21 +4,19 @@ using UnityEngine;
 using TMPro;
 using System;
 
-public class UIPoints : MonoBehaviour
+public class UiGameOver : MonoBehaviour
 {
-    int displayedPoints = 0;
-    public TextMeshProUGUI pointsLabel;
+    public int displayedPoints = 0;
+    public TextMeshProUGUI pointsUI;
 
     // Start is called before the first frame update
     void Start()
     {
-        GameManager.Instance.onPointsUpdated.AddListener(UpdatePoints);
         GameManager.Instance.onGameStateUpdated.AddListener(GameStateUpdated);
     }
 
     void OnDestroy()
     {
-        GameManager.Instance.onPointsUpdated.RemoveListener(UpdatePoints);
         GameManager.Instance.onGameStateUpdated.RemoveListener(GameStateUpdated);
     }
 
@@ -27,23 +25,32 @@ public class UIPoints : MonoBehaviour
         if(newState == GameManager.GameState.GameOver)
         {
             displayedPoints = 0;
-            pointsLabel.text = displayedPoints.ToString();
+            StartCoroutine(DisplayFinalScore());
         }
     }
 
-    void UpdatePoints()
-    {
-        StartCoroutine(UpdatePointCount());
-    }
-
-    IEnumerator UpdatePointCount()
+    IEnumerator DisplayFinalScore()
     {
         while (displayedPoints < GameManager.Instance.points)
         {
             displayedPoints++;
-            pointsLabel.text = displayedPoints.ToString();
-            yield return new WaitForSeconds(0.1f);
+            pointsUI.text = displayedPoints.ToString();
+            yield return new WaitForFixedUpdate();
         }
+
+        displayedPoints = GameManager.Instance.points;
+        pointsUI.text = displayedPoints.ToString();
+
         yield return null;
+    }
+
+    public void PlayAgain()
+    {
+        GameManager.Instance.RestartGame();
+    }
+    
+    public void QuitGame()
+    {
+        GameManager.Instance.ExitGame();
     }
 }

@@ -30,7 +30,29 @@ public class Board : MonoBehaviour
 
         SetupBoard();
         SetCameraPosition();
-        StartCoroutine(SetupPieces());
+
+        if (GameManager.Instance.gameState == GameManager.GameState.InGame)
+        {
+            StartCoroutine(SetupPieces());
+        }
+        GameManager.Instance.onGameStateUpdated.AddListener(OnGameStateUpdated);
+    }
+
+    void OnDestroy()
+    {
+        GameManager.Instance.onGameStateUpdated.RemoveListener(OnGameStateUpdated);
+    }
+
+    private void OnGameStateUpdated(GameManager.GameState newState)
+    {
+        if (newState == GameManager.GameState.InGame)
+        {
+            StartCoroutine(SetupPieces());
+        }
+        else if(newState == GameManager.GameState.GameOver)
+        {
+            ClearAllPieces();
+        }
     }
 
     private IEnumerator SetupPieces()
@@ -70,6 +92,17 @@ public class Board : MonoBehaviour
         var pieceToClear = boardPieces[x, y];
         pieceToClear.RemovePiece(true);
         boardPieces[x, y] = null;
+    }
+
+    void ClearAllPieces()
+    {
+        for(int x = 0; x < width; x++)
+        {
+            for(int y = 0; y < height; y++)
+            {
+                ClearPieceAt(x, y);
+            }
+        }
     }
 
     private GamePiece CreateGamePiece(int x, int y)

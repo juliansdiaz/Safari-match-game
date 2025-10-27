@@ -58,6 +58,14 @@ public class GameManager : MonoBehaviour
         currentTimeToMatch = 0;
     }
 
+    public void StartGame()
+    {
+        points = 0;
+        gameState = GameState.InGame;
+        onGameStateUpdated?.Invoke(gameState);
+        currentTimeToMatch = 0;
+    }
+
     public void RestartGame()
     {
         points = 0;
@@ -65,9 +73,11 @@ public class GameManager : MonoBehaviour
         onGameStateUpdated?.Invoke(gameState);
         currentTimeToMatch = 0;
     }
-    
+
     public void ExitGame()
     {
-        
+        points = 0;
+        gameState = GameState.Idle;
+        onGameStateUpdated?.Invoke(gameState);
     }
 }
